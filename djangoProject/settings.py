@@ -30,7 +30,16 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+"""
+django 서버를 실행하면 나오는 로그 내용 중 이런게 있음.
+You have 18 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, contenttypes, sessions.
+Run 'python manage.py migrate' to apply them.
+
+18개의 적용되지 않은 migration들이 있다는 문구. (admin, auth등의 앱들과 관련이 있으며, 이 앱들은 django 프로젝트 생성 시 기본적으로 설치되는 앱들임)
+이걸 적용하려면 `python manage.py migrate`를 하라고 한다.
+"""
 INSTALLED_APPS = [
+    'pybo.apps.PyboConfig', # pybo 패키지의 models.py를 활용하여 테이블을 만들기 위해 추가.
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -76,7 +85,7 @@ WSGI_APPLICATION = 'djangoProject.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.sqlite3', # 장고는 기본적으로 sqlite를 사용하여 DB를 마이그레이션 한다.
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }

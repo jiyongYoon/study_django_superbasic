@@ -77,3 +77,4 @@ class Answer(models.Model):
     이렇게 가져와야 한다.
     Java로 따지면 단방향 연관관계구만!
     """
+

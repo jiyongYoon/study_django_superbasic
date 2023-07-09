@@ -4,5 +4,5 @@ from django.apps import AppConfig
 
 
 class PyboConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'pybo'
+    default_auto_field = 'django.db.models.BigAutoField' # primary_key 속성을 설정함
+    name = 'pybo' # 앱의 이름 명시

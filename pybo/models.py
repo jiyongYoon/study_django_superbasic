@@ -78,3 +78,6 @@ class Answer(models.Model):
     Java로 따지면 단방향 연관관계구만!
     """
 
+class Topic(models.Model):
+    title = models.CharField(max_length=50)
+    body = models.TextField()

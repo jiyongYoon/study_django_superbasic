@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponse, redirect
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt # post요청 시 csrf 허용
 from django.utils import timezone
+from django.core.paginator import Paginator # 페이징 처리
 
 from .models import Topic, Question, Answer
 
@@ -102,11 +103,12 @@ model_count = 0
 #         return redirect(f'/read/{topic_id}')
 
 
-def HTMLTemplate(articleTag, id=None):
+def HTMLTemplate(articleTag, id=None, page=None):
     ol = ''
     questions = Question.objects.order_by('-id')
-    print(questions)
-    for question in questions:
+    paginator = Paginator(questions, 10)
+    page_obj = paginator.get_page(page)
+    for question in page_obj:
         ol += f'<li><a href="/read/{question.id}">{question.subject}</a></li>'
     return f'''
     <html>
@@ -126,13 +128,16 @@ def HTMLTemplate(articleTag, id=None):
 def index(request):
     global count
     count += 1
+
+    page = request.GET.get('page', '1') # 두번째 인자는 default 값
+
     article = f'''
         <h2> Welcome </h2>
             Hello, <br>
         I'm django <br>
         today's visited: {count}
     '''
-    return HttpResponse(HTMLTemplate(article))
+    return HttpResponse(HTMLTemplate(article, None, page))
 
 @csrf_exempt
 def delete(request):

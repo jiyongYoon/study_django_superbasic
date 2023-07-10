@@ -1,20 +1,24 @@
 from django.shortcuts import render, HttpResponse, redirect
 from django.views.decorators.csrf import csrf_exempt
 
+from .models import Topic
+
 count = 0
 routing_count = 0
 view_count = 0
 model_count = 0
-topics = [
-    {'id':1, 'title':'routing', 'body': 'Routing is ...'},
-    {'id':2, 'title':'view', 'body': 'View is ...'},
-    {'id':3, 'title':'Model', 'body': 'Model is ...'}
-]
+# topics = [
+#     {'id':1, 'title':'routing', 'body': 'Routing is ...'},
+#     {'id':2, 'title':'view', 'body': 'View is ...'},
+#     {'id':3, 'title':'Model', 'body': 'Model is ...'}
+# ]
 
 def HTMLTemplate(articleTag, id=None):
     ol = ''
+    topics = Topic.objects.order_by('-id')
+    print(topics)
     for topic in topics:
-        ol += f'<li><a href="/read/{topic["id"]}">{topic["title"]}</a></li>'
+        ol += f'<li><a href="/read/{topic.id}">{topic.title}</a></li>'
     return f'''
     <html>
     <body>
@@ -31,47 +35,43 @@ def HTMLTemplate(articleTag, id=None):
     '''
 
 def index(request):
-    global topics
     global count
     count += 1
     article = f'''
-    <h2> Welcome </h2>
-        Hello, <br>
-    I'm django <br>
-    count: {count}
+        <h2> Welcome </h2>
+            Hello, <br>
+        I'm django <br>
+        count: {count}
     '''
     return HttpResponse(HTMLTemplate(article))
 
 @csrf_exempt
 def delete(request):
-    global topics
     if request.method == 'POST':
         id = request.POST['id']
-        newTopics = []
-        for topic in topics:
-            if topic['id'] != int(id):
-                newTopics.append(topic)
-        topics = newTopics
+        findTopic = Topic.objects.get(id=id)
+        findTopic.delete()
         return redirect('/')
 
 @csrf_exempt
-def read(request, id):
-        global topics
-        article = ''
-        for topic in topics:
-            if topic['id'] == int(id):
-                article = f'''
-                <h2>{topic["title"]}</h2>
-                {topic["body"]} <br>
-                <form action="/delete/" method="post">
-                    <p><input type="hidden" name="id" value={id}></p>
-                    <p><input type="submit" value="삭제"></p>
-                </form>
-                <li>
-                    <a href="/update/{id}">update</a>
-                </li>
-                '''
-        return HttpResponse(HTMLTemplate(article, id))
+def read(request, topic_id):
+    try:
+        find_topic = Topic.objects.get(id=topic_id)
+    except Topic.DoesNotExist:
+        return HttpResponse('해당 게시글이 없습니다.')
+
+    article = f'''
+        <h2>{find_topic.title}</h2>
+        {find_topic.body} <br>
+        <form action="/delete/" method="post">
+            <p><input type="hidden" name="id" value={find_topic.id}></p>
+            <p><input type="submit" value="삭제"></p>
+        </form>
+        <li>
+            <a href="/update/{find_topic.id}">update</a>
+        </li>
+    '''
+    return HttpResponse(HTMLTemplate(article, id))
 
 @csrf_exempt
 def create(request):
@@ -85,39 +85,31 @@ def create(request):
         '''
         return HttpResponse(HTMLTemplate(article))
     elif request.method == 'POST':
-        global topics
-        title = request.POST['title']
-        body = request.POST['body']
-        newTopic = {"id": len(topics) + 1, "title":title, "body":body}
-        topics.append(newTopic)
-        return redirect('/read/' + str(len(topics)))
+        topic = Topic(title=request.POST['title'], body=request.POST['body'])
+        topic.save()
+        return redirect('/read/' + str(int(topic.id)))
 
 @csrf_exempt
-def update(request, id):
-    global topics
+def update(request, topic_id):
+    try:
+        findTopic: Topic = Topic.objects.get(id=topic_id)
+    except Topic.DoesNotExist:
+        return HttpResponse('해당 게시글이 없습니다.')
+
     if request.method == 'GET':
-        for topic in topics:
-            if topic['id'] == int(id):
-                findTopic = {
-                    "title":topic['title'],
-                    "body":topic['body']
-                }
         article = f'''
-            <form action="/update/{id}/" method="post">
-                <p><input type="text" name="title" placeholder="title" value={findTopic["title"]}></p>
-                <p><textarea name="body" placeholder="body">{findTopic["body"]}</textarea></p>
+            <form action="/update/{topic_id}/" method="post">
+                <p><input type="text" name="title" placeholder="title" value={findTopic.title}></p>
+                <p><textarea name="body" placeholder="body">{findTopic.body}</textarea></p>
                 <p><input type="submit"></p>
             </form>
         '''
-        return HttpResponse(HTMLTemplate(article, id))
+        return HttpResponse(HTMLTemplate(article, topic_id))
     elif request.method == 'POST':
-        title = request.POST['title']
-        body = request.POST['body']
-        for topic in topics:
-            if topic['id'] == int(id):
-                topic['title'] = title
-                topic['body'] = body
-        return redirect(f'/read/{id}')
+        findTopic.title = request.POST["title"]
+        findTopic.body = request.POST["body"]
+        findTopic.save()
+        return redirect(f'/read/{topic_id}')
 
 
 ###############################################################
@@ -125,7 +117,7 @@ def update(request, id):
 from .models import Question
 
 
-def index(request):
+def pybo_index(request):
     question_list = Question.objects.order_by('-create_date') # - 가 붙어있으면 역순 정렬
     context = {'question_list': question_list}
     return render(request, 'pybo/question_list.html', context)

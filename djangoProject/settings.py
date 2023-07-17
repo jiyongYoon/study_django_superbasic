@@ -41,7 +41,7 @@ Run 'python manage.py migrate' to apply them.
 INSTALLED_APPS = [
     'pybo.apps.PyboConfig', # pybo 패키지의 models.py를 활용하여 테이블을 만들기 위해 추가.
     'django.contrib.admin',
-    'django.contrib.auth',
+    'django.contrib.auth', # 장고 프로젝트 생성시 로그인-로그아웃 기능을 쉽게 만들기 위해 기본으로 추가되는 앱.
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
